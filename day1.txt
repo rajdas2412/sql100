@@ -1,0 +1,55 @@
+create table icc_world_cup
+(
+Team_1 Varchar(20),
+Team_2 Varchar(20),
+Winner Varchar(20)
+);
+INSERT INTO icc_world_cup values('India','SL','India');
+INSERT INTO icc_world_cup values('SL','Aus','Aus');
+INSERT INTO icc_world_cup values('SA','Eng','Eng');
+INSERT INTO icc_world_cup values('Eng','NZ','NZ');
+INSERT INTO icc_world_cup values('Aus','India','India');
+
+
+select * from icc_world_cup iwc;
+
+
+-- Matches Played
+select team as team_name, count(team) as matches_played
+from 
+(
+	select team_1 team 
+	from icc_world_cup
+	union all
+	select team_2 team
+	from icc_world_cup
+) group by team;
+
+-- Get win_flag for matches won
+select team_1 as team_name,
+case when team_1 = winner then 1 else 0 end as win_flag
+from icc_world_cup iwc
+union all
+select team_2 as team_name,
+case when team_2 = winner then 1 else 0 end win_flag
+from icc_world_cup iwc;
+
+
+-- Get Points, 2 points for 1 win
+select t.team_name, 
+count(1) matches_played,
+sum(win_flag) total_wins,
+(count(1) - sum(win_flag)) as total_lost,
+sum(win_flag) * 2 total_points
+from 
+(
+	select team_1 as team_name,
+	case when team_1 = winner then 1 else 0 end as win_flag
+	from icc_world_cup iwc
+	union all
+	select team_2 as team_name,
+	case when team_2 = winner then 1 else 0 end win_flag
+	from icc_world_cup iwc
+) as t
+group by t.team_name
+order by total_points desc;
