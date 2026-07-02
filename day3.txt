@@ -1,0 +1,40 @@
+create table customer_orders (
+order_id integer,
+customer_id integer,
+order_date date,
+order_amount integer
+);
+
+insert into customer_orders values(1,100,cast('2022-01-01' as date),2000),(2,200,cast('2022-01-01' as date),2500),(3,300,cast('2022-01-01' as date),2100)
+,(4,100,cast('2022-01-02' as date),2000),(5,400,cast('2022-01-02' as date),2200),(6,500,cast('2022-01-02' as date),2700)
+,(7,100,cast('2022-01-03' as date),3000),(8,400,cast('2022-01-03' as date),1000),(9,600,cast('2022-01-03' as date),3000);
+
+
+select * from customer_orders;
+
+-- Total Customers per day
+select order_date, count(customer_id) total_customers
+from customer_orders
+group by order_date;
+
+
+-- Find the First Visit of the customer
+-- Join with Original table and check for repeats
+-- Summarize the output
+select order_date, count(customer_id) total_customers, sum(new_flag) new_customers, sum(repeat_flag) return_customers
+from (
+with first_visit as (
+	select customer_id, min(order_date) first_visit_date
+	from customer_orders
+	group by customer_id
+)
+select c.customer_id, c.order_date,
+f.first_visit_date,
+case when f.first_visit_date = c.order_date then 1 else 0 end new_flag,
+case when f.first_visit_date != c.order_date then 1 else 0 end repeat_flag 
+from first_visit f
+left join customer_orders c
+on f.customer_id = c.customer_id
+)
+group by order_date
+order by order_date;
