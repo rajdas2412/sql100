@@ -38,3 +38,40 @@ on f.customer_id = c.customer_id
 )
 group by order_date
 order by order_date;
+
+
+-- Same as above with CTE
+with first_visit as (
+	select customer_id, min(order_date) first_visit_date
+	from customer_orders
+	group by customer_id
+), visit_info as(
+select c.customer_id, c.order_date,
+f.first_visit_date,
+case when f.first_visit_date = c.order_date then 1 else 0 end new_flag,
+case when f.first_visit_date != c.order_date then 1 else 0 end repeat_flag 
+from first_visit f
+left join customer_orders c
+on f.customer_id = c.customer_id
+)
+select order_date, count(customer_id) total_customers, sum(new_flag) new_customers, sum(repeat_flag) return_customers
+from visit_info
+group by order_date
+order by order_date;
+
+-- Without CTE
+-- Same as above with CTE
+with first_visit as (
+	select customer_id, min(order_date) first_visit_date
+	from customer_orders
+	group by customer_id
+)
+select c.order_date,
+count(c.customer_id) total_customers,
+sum(case when f.first_visit_date = c.order_date then 1 else 0 end) new_customers,
+sum(case when f.first_visit_date != c.order_date then 1 else 0 end) return_customers 
+from first_visit f
+left join customer_orders c
+on f.customer_id = c.customer_id
+group by order_date
+order by order_date;
