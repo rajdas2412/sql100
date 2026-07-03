@@ -38,11 +38,37 @@ from(
 	group by name, floor
 ) where visit_rank=1 
 ), resource_used as (
-select name, count(floor) total_visits, string_agg(resources, ',') resources_used
+select name, count(floor) total_visits, string_agg(distinct resources, ',') resources_used
 from entries
 group by name
 )
 select m.name, m.most_visited_floor,
 r.total_visits, r.resources_used
 from most_visits m join resource_used r
+on m.name = r.name;
+
+
+-- CTE for most visits and resources used
+-- Without using Distinct in string_agg function
+with 
+distinct_resources as(select distinct name, resources from entries), 
+all_resources as (select name, string_agg(resources,';') resources_used from distinct_resources group by name),
+most_visits as (
+select name, floor most_visited_floor  
+from(
+	select name, floor,
+	rank() over(partition by name order by count(floor) desc) as visit_rank
+	from entries
+	group by name, floor
+) where visit_rank=1 
+), resource_used as (
+select name, count(floor) total_visits
+from entries
+group by name
+)
+select m.name, m.most_visited_floor,
+r.total_visits, a.resources_used
+from most_visits m join resource_used r
 on m.name = r.name
+join all_resources a
+on m.name = a.name;
