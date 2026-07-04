@@ -15,10 +15,10 @@ with input_info as (
 first_sunday as (
     select 
         case 
-            when date_part('dow', todays_date)::int = 0 
-                then todays_date
+            when date_part('dow', todays_date)::int = 0 then todays_date
             else todays_date + (7 - date_part('dow', todays_date)::int)
-        end as sunday_date
+        end 
+        sunday_date
     from input_info
 )
 select todays_date, n as next_nth, sunday_date + (7 * (n - 1)) as upcoming_sunday
