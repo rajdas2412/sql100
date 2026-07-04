@@ -1,0 +1,25 @@
+-- date_part function extracts a specified subfield (such as year, month, day, or hour) from a given timestamp or date.
+
+0 - Sunday
+6 - Saturday
+
+select cast('2026-07-04' as date) "today_date", cast('3' as int) "n",
+(7 - date_part('dow', cast('2026-07-04' as date)));
+
+select cast('2026-07-04' as date) + interval '2 days';
+
+
+with input_info as (
+    select date '2026-07-04' as todays_date, 3 as n
+),
+first_sunday as (
+    select 
+        case 
+            when date_part('dow', todays_date)::int = 0 
+                then todays_date
+            else todays_date + (7 - date_part('dow', todays_date)::int)
+        end as sunday_date
+    from input_info
+)
+select todays_date, n as next_nth, sunday_date + (7 * (n - 1)) as upcoming_sunday
+from first_sunday, input_info;
